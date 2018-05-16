@@ -76,8 +76,8 @@ def main():
             print("===> no model found at {}".format(opt.pretrained))
 
     print("===> Setting Optimizer")
-    # optimizer = optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
-    optimizer = optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
+    optimizer = optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
+    # optimizer = optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
     print("===> Training")
     for epoch in range(opt.start_epoch, opt.nEpochs + 1):
         train(training_data_loader, optimizer, model, criterion, epoch)

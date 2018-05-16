@@ -9,8 +9,10 @@ class DRRN(nn.Module):
     def __init__(self):
         super(DRRN, self).__init__()
 
-        self.block_num = 10
+        self.block_num = 9
         self.block_size = 5
+        self.shuflle_size = 2
+
         print ("===>block size",self.block_size)
         print("===>block size", self.block_num)
 
@@ -33,7 +35,13 @@ class DRRN(nn.Module):
         self.output = nn.Conv2d(in_channels=128, out_channels=1, kernel_size=3, stride=1, padding=1, bias=False)
         self.relu = nn.ReLU(inplace=True)
         self.conv_bn = torch.nn.BatchNorm2d(128).cuda()
-        self.ups = torch.nn.Upsample(scale_factor=2, mode='bilinear')
+
+        #ESPCNN
+        self.shuffle = torch.nn.PixelShuffle(self.shuflle_size)
+        in_channels = 128
+        out_channels = in_channels*(self.shuflle_size * self.shuflle_size)
+        self.espcn_conv = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+
 
         # weights initialization
         for m in self.modules():
@@ -71,6 +79,7 @@ class DRRN(nn.Module):
             out_seq.append(input)
 
             for i in range(block_size):
+                # out = self.relu(self.conv_bn(self.conv(input)))
                 out = self.relu(self.conv(input))
                 # print("=======>block size")
                 # print(out.size())
@@ -102,9 +111,14 @@ class DRRN(nn.Module):
         # print("=======>FGF comp")
         F_DF = torch.add(F_GF,F_1)
         # print("=======>FDF comp")
-        # without ESPCN
+        def ESPCN(x):
+            ret=self.espcn_conv(x)
+            ret=self.shuffle(ret)
+            ret = self.espcn_conv(ret)
+            ret = self.shuffle(ret)
+            return ret
+
+        F_DF = ESPCN(F_DF)
         I_HR = self.output(F_DF)
-
-
 
         return I_HR
