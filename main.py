@@ -24,7 +24,7 @@ parser.add_argument("--threads", type=int, default=1, help="Number of threads fo
 parser.add_argument("--momentum", default=0.9, type=float, help="Momentum, Default=0.9")
 parser.add_argument("--weight-decay", "--wd", default=1e-4, type=float, help="Weight decay, Default=1e-4")
 parser.add_argument("--pretrained", default="", type=str, help='path to pretrained model, Default=None')
-
+parser.add_argument("--optimizer", default="SGD", type=str, help='SGD or Adam?, Default=SGD')
 
 def main():
     global opt, model
@@ -76,8 +76,10 @@ def main():
             print("===> no model found at {}".format(opt.pretrained))
 
     print("===> Setting Optimizer")
-    optimizer = optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
-    # optimizer = optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
+    if opt.optimizer == "SGD" :
+        optimizer = optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
+    elif opt.optimizer == "Adam" :
+        optimizer = optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
     print("===> Training")
     for epoch in range(opt.start_epoch, opt.nEpochs + 1):
         train(training_data_loader, optimizer, model, criterion, epoch)
