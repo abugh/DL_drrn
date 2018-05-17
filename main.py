@@ -25,6 +25,7 @@ parser.add_argument("--momentum", default=0.9, type=float, help="Momentum, Defau
 parser.add_argument("--weight-decay", "--wd", default=1e-4, type=float, help="Weight decay, Default=1e-4")
 parser.add_argument("--pretrained", default="", type=str, help='path to pretrained model, Default=None')
 parser.add_argument("--optimizer", default="SGD", type=str, help='SGD or Adam?, Default=SGD')
+parser.add_argument("--BatchNormalize", default="no", type=str, help='use BatchNormalize?, Default=no')
 
 def main():
     global opt, model
@@ -46,7 +47,7 @@ def main():
                                       shuffle=True)
 
     print("===> Building model")
-    model = DRRN()
+    model = DRRN(opt)
     criterion = nn.MSELoss(size_average=False)
 
     print("===> Setting GPU")

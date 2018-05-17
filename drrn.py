@@ -6,11 +6,12 @@ from PIL import Image
 from math import sqrt
 from torch.autograd import Variable
 
+
 class DRRN(nn.Module):
 
-    def __init__(self):
+    def __init__(self,opt):
         super(DRRN, self).__init__()
-
+        self.opt = opt
         self.block_num = 9
         self.block_size = 5
         self.shuflle_size = 2
@@ -75,26 +76,26 @@ class DRRN(nn.Module):
             out_seq=[]
             input = x
 
-            # print("=======>input size")
-            # print(input.size())
 
             out_seq.append(input)
 
             for i in range(block_size):
-                # out = self.relu(self.conv_bn(self.conv(input)))
-                out = self.relu(self.conv(input))
-                # print("=======>block size")
-                # print(out.size())
+                if self.opt.BatchNormalize == "no" :
+                    l1=self.conv(input)
+                    out = self.relu(l1)
+                    del (l1)
+                else:
+                    l1 = self.conv(input)
+                    l2 = self.conv_bn(l1)
+                    del(l1)
+                    out = self.relu(l2)
+                    del(l2)
                 out_seq.append(out)
                 input = torch.add(out,input)
+                del (out)
             cat = torch.cat(out_seq,1)
-            # print("=======>cat")
             out = self.conv_cat_local(cat)
-            # print("=======>cat size")
-            # print(out.size())
-            # print("=======>cat conv comlete")
             out = torch.add(out,x)
-            # print("=======>cat add comlete")
 
             del (out_seq)  # release memory
             del (cat)
@@ -108,16 +109,13 @@ class DRRN(nn.Module):
         RDBs = []
         for i in range(block_num):
             out = residual_block(input)
+            del (input)
             RDBs.append(out)
             input = out
         RDBs.append(out)# output of the last RDB
-        # print("=======>RDB cat sta")
         cat = torch.cat(RDBs,1)
-        # print("=======>RDB cat comp")
         F_GF = self.conv(self.conv_cat_global(cat))# 1 x 1 and 3 x 3 conv
-        # print("=======>FGF comp")
         F_DF = torch.add(F_GF,F_1)
-        # print("=======>FDF comp")
         def ESPCN(x):
             ret=self.espcn_conv(x)
             ret=self.shuffle(ret)
