@@ -11,7 +11,7 @@ from dataset import DatasetFromHdf5
 
 # Training settings
 parser = argparse.ArgumentParser(description="Pytorch DRRN")
-parser.add_argument("--batchSize", type=int, default=128, help="Training batch size")
+parser.add_argument("--batchSize", type=int, default=64, help="Training batch size")
 parser.add_argument("--nEpochs", type=int, default=50, help="Number of epochs to train for")
 parser.add_argument("--lr", type=float, default=0.1, help="Learning Rate, Default=0.1")
 parser.add_argument("--step", type=int, default=5,

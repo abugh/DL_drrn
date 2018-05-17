@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision import transforms
+from PIL import Image
 from math import sqrt
 from torch.autograd import Variable
 
@@ -35,13 +37,13 @@ class DRRN(nn.Module):
         self.output = nn.Conv2d(in_channels=128, out_channels=1, kernel_size=3, stride=1, padding=1, bias=False)
         self.relu = nn.ReLU(inplace=True)
         self.conv_bn = torch.nn.BatchNorm2d(128).cuda()
-
         #ESPCNN
         self.shuffle = torch.nn.PixelShuffle(self.shuflle_size)
         in_channels = 128
         out_channels = in_channels*(self.shuflle_size * self.shuflle_size)
         self.espcn_conv = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1, bias=False)
 
+        self.AvgPool = nn.AvgPool2d(kernel_size=4)
 
         # weights initialization
         for m in self.modules():
@@ -62,7 +64,7 @@ class DRRN(nn.Module):
         #     out = torch.add(out, inputs)
         # out = self.output(self.relu(out))
         # out = torch.add(out, residual)
-
+        #
         # return out
 
         # DENSE NET
@@ -93,6 +95,11 @@ class DRRN(nn.Module):
             # print("=======>cat conv comlete")
             out = torch.add(out,x)
             # print("=======>cat add comlete")
+
+            del (out_seq)  # release memory
+            del (cat)
+            del (input)
+
             return out
 
         F_1 = self.input(x)
@@ -121,4 +128,18 @@ class DRRN(nn.Module):
         F_DF = ESPCN(F_DF)
         I_HR = self.output(F_DF)
 
-        return I_HR
+        # RESIZE
+        ret = self.AvgPool(I_HR)
+
+        del (RDBs)  # release memory
+        del (input)
+        del (out)
+        del (F0)
+        del (F_1)
+        del (cat)
+        del (F_GF)
+        del (F_DF)
+        del (I_HR)
+
+
+        return ret
