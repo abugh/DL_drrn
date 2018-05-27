@@ -32,6 +32,11 @@ scales = [2, 3, 4]
 
 image_list = glob.glob(opt.dataset+"_mat/*.*")
 
+if cuda:
+	model = model.cuda()
+else:
+	model = model.cpu()
+
 for scale in scales:
 	avg_psnr_predicted = 0.0
 	avg_psnr_bicubic = 0.0
@@ -47,18 +52,15 @@ for scale in scales:
 			im_gt_y = im_gt_y.astype(float)
 			im_b_y = im_b_y.astype(float)      
 
-			psnr_bicubic = PSNR(im_gt_y, im_b_y,shave_border=scale)
+			psnr_bicubic = float(PSNR(im_gt_y, im_b_y,shave_border=scale))
 			avg_psnr_bicubic += psnr_bicubic
 
 			im_input = im_b_y/255.
 
 			im_input = Variable(torch.from_numpy(im_input).float()).view(1, -1, im_input.shape[0], im_input.shape[1])
 
-			if cuda:
-				model = model.cuda()
+			if cuda :
 				im_input = im_input.cuda()
-			else:
-				model = model.cpu()
 
 			start_time = time.time()
 			HR = model(im_input)
@@ -74,8 +76,16 @@ for scale in scales:
 			im_h_y[im_h_y>255.] = 255.            
 			im_h_y = im_h_y[0,:,:]
 
-			psnr_predicted = PSNR(im_gt_y, im_h_y,shave_border=scale)
+			psnr_predicted = float(PSNR(im_gt_y, im_h_y,shave_border=scale))
 			avg_psnr_predicted += psnr_predicted
+
+			del (im_h_y)
+			del (HR)
+			del (im_gt_y)
+			del (im_b_y)
+			del (im_input)
+
+
 
 	print("Scale=", scale)
 	print("Dataset=", opt.dataset)

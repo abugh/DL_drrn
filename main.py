@@ -25,7 +25,12 @@ parser.add_argument("--momentum", default=0.9, type=float, help="Momentum, Defau
 parser.add_argument("--weight-decay", "--wd", default=1e-4, type=float, help="Weight decay, Default=1e-4")
 parser.add_argument("--pretrained", default="", type=str, help='path to pretrained model, Default=None')
 parser.add_argument("--optimizer", default="SGD", type=str, help='SGD or Adam?, Default=SGD')
-parser.add_argument("--BatchNormalize", default="no", type=str, help='use BatchNormalize?, Default=no')
+parser.add_argument("--batchNormalize", action="store_true", help="use batch Normalize?")
+parser.add_argument("--NetStructure", default="DenseNet", type=str, help='DenseNet or DRRN?, Default=DenseNet')
+parser.add_argument("--BlockNum", default=8, type=int, help='DenseNet BlockNum, Default=8')
+parser.add_argument("--BlockSize", default=4, type=int, help='DenseNet BlockSize, Default=4')
+parser.add_argument("--DRRNsize", default=25, type=int, help='DRRNsize, Default=25')
+parser.add_argument("--ESPCN", action="store_true", help="use ESPCN?")
 
 def main():
     global opt, model
@@ -81,6 +86,8 @@ def main():
         optimizer = optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
     elif opt.optimizer == "Adam" :
         optimizer = optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
+    else:
+        print("===> optimizer error!!!")
     print("===> Training")
     for epoch in range(opt.start_epoch, opt.nEpochs + 1):
         train(training_data_loader, optimizer, model, criterion, epoch)
